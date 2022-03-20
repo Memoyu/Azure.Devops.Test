@@ -38,7 +38,7 @@ stages:
     - task: Docker@2
       displayName: 'Build Docker Image And Push'
       inputs:
-        containerRegistry: 'memoyu-docker'
+        containerRegistry: 'MemoyuDockerHub'
         repository: $(imageName)
         command: 'buildAndPush'
         Dockerfile: '$(Build.SourcesDirectory)/docker/Dockerfile'
@@ -48,7 +48,7 @@ stages:
     - task: SSH@0
       displayName: 'Run Blog Api Container'
       inputs:
-        sshEndpoint: 'HuaweiCloud'
+        sshEndpoint: 'HuaWeiCloud'
         runOptions: 'inline'
         inline: |
           echo "================= to del container ===================="
