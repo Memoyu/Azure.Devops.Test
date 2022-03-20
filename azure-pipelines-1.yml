@@ -12,8 +12,8 @@ resources:
 
 variables:
   tag: '$(Build.BuildId)'
-  containerName: azureDevopsTest
-  imageName: memoyu/azureDevopsTest
+  containerName: azuredevopstest
+  imageName: memoyu/azuredevopstest
   appsettings: Azure.Devops.Test/appsettings.Production.json
 
 stages:
