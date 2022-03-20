@@ -18,7 +18,7 @@ variables:
 
 stages:
 - stage: Build
-  displayName: Build Blog Api
+  displayName: Build Api
   jobs:
   - job: Build
     pool:
@@ -46,7 +46,7 @@ stages:
         tags: 'latest'
 
     - task: SSH@0
-      displayName: 'Run Blog Api Container'
+      displayName: 'Run Api Container'
       inputs:
         sshEndpoint: 'HuaWeiCloud'
         runOptions: 'inline'
