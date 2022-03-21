@@ -3,11 +3,11 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
 # 管道触发器，具体：https://docs.microsoft.com/zh-cn/azure/devops/pipelines/build/triggers?view=azure-devops
-# 此处触发条件为当推送标签为pord时触发
+# 此处触发条件为当推送标签为release-*时触发
 trigger:
  tags:
    include:
-     - prod
+     - release-* # *代表通配符，例如：release-20210321 可以触发
 
 # 表示资源为YML所在的仓储，你也可以指定某个管道的资源
 resources:
