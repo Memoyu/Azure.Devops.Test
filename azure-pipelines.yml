@@ -2,49 +2,57 @@
 # Build a Docker image
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
+# 管道触发器，具体：https://docs.microsoft.com/zh-cn/azure/devops/pipelines/build/triggers?view=azure-devops
+# 此处触发条件为当推送标签为pord时触发
 trigger:
  tags:
    include:
      - prod
 
+# 表示资源为YML所在的仓储，你也可以指定某个管道的资源
 resources:
 - repo: self
 
+# 定义变量，使用：$(变量名)，例如：$(containerName)
 variables:
   tag: '$(Build.BuildId)'
   containerName: azuredevopstest
   imageName: memoyu/azuredevopstest
   appsettings: Azure.Devops.Test/appsettings.Production.json
 
+# 阶段集合定义，我们这比较简单，只需一个阶段即可
 stages:
 - stage: Build
   displayName: Build Api
+  # 做业集合定义，每个作业其内部是顺序运行的步骤集合
   jobs:
   - job: Build
     pool:
       vmImage: ubuntu-latest
     steps:
-
+    # 步骤1：执行shell进行配置文件appsettings.Production.json值的替换
     - script: |
         echo ready to execute command
         ls
+        # 此处进行替换，使用sed进行配置文件指定值替换
         sed -i 's/{MySqlConStr}/$(MySqlConStr)/g' $(appsettings)
         sed -i 's/{ConfigVal}/$(ConfigVal)/g' $(appsettings)
+        # 打印替换后的配置文件内容
         echo "================= print file $(appsettings) start ===================="
         cat $(appsettings) | while read line; do echo $line ; done
         echo "================= print file $(appsettings) end ===================="
         echo command executed
-        
+    # 步骤2：构建Docker Image，完成后推送到Docker Hub
     - task: Docker@2
       displayName: 'Build Docker Image And Push'
       inputs:
         containerRegistry: 'MemoyuDockerHub'
         repository: $(imageName)
         command: 'buildAndPush'
-        Dockerfile: '$(Build.SourcesDirectory)/docker/Dockerfile'
-        buildContext: $(Build.Repository.LocalPath)
+        Dockerfile: '$(Build.SourcesDirectory)/docker/Dockerfile' # 注意填写正确的Dockerfile地址
+        buildContext: $(Build.Repository.LocalPath) # 构建镜像的上下文路径，当前为源代码文件的本地路径（使用了预定义变量）
         tags: 'latest'
-
+    # 步骤3：连接服务SSH，进行旧容器、镜像删除，然后拉取新镜像并运行镜像
     - task: SSH@0
       displayName: 'Run Api Container'
       inputs:
@@ -52,10 +60,9 @@ stages:
         runOptions: 'inline'
         inline: |
           echo "================= to del container ===================="
-
-          #判断是否存在容器
+          # 判断是否存在容器
           docker ps | grep $(containerName) &> /dev/null
-          #如果不存在，则Remove
+          # 如果不存在，则Remove
           if [ $? -ne 0 ]
           then
               echo "$(containerName) container not exist continue.. "
@@ -66,10 +73,9 @@ stages:
           fi
 
           echo "================= to rm image ===================="
-
-          #判断是否存在镜像
+          # 判断是否存在镜像
           docker images | grep $(imageName) &> /dev/null
-          #如果不存在，不做操作
+          # 如果不存在，不做操作
           if [ $? -ne 0 ]
           then
               echo "image does not exist , continue..."
@@ -80,7 +86,9 @@ stages:
 
           echo "================= to pull image ===================="
           docker pull $(imageName)
+
           echo "================= to run container ===================="
           docker run --name $(containerName) -d -p 5100:80 $(imageName)
+
           echo "================= publish success ===================="
         readyTimeout: '20000'
