@@ -23,15 +23,15 @@ variables:
 # 阶段集合定义，我们这比较简单，只需一个阶段即可
 stages:
 - stage: Build
-  displayName: Build Api
-
+  displayName: build api
+  
   # 做业集合定义，每个作业其内部是顺序运行的步骤集合
   jobs:
   - job: Build
     pool:
       vmImage: ubuntu-latest
     steps:
-
+    
     # 步骤1：执行shell进行配置文件appsettings.Production.json值的替换
     - script: |
         echo ready to execute command
@@ -45,10 +45,10 @@ stages:
         echo "================= print file $(appsettings) end ===================="
         echo command executed
       displayName: 'replace config value'
-
+      
     # 步骤2：构建Docker Image，完成后推送到Docker Hub
     - task: Docker@2
-      displayName: 'Build Docker Image And Push'
+      displayName: 'build docker image and push'
       inputs:
         containerRegistry: 'MemoyuDockerHub'
         repository: $(imageName)
@@ -59,7 +59,7 @@ stages:
         
     # 步骤3：连接服务SSH，进行旧容器、镜像删除，然后拉取新镜像并运行镜像
     - task: SSH@0
-      displayName: 'Run Api Container'
+      displayName: 'run api container'
       inputs:
         sshEndpoint: 'HuaWeiCloud'
         runOptions: 'inline'
